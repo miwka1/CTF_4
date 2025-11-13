@@ -20,6 +20,55 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+function generateTop3Leaderboard() {
+    const top3List = document.getElementById('leaderboardTop3');
+    if (!top3List) return;
+
+    top3List.innerHTML = '';
+
+    fetch('/api/users/top')
+        .then(response => response.json())
+        .then(users => {
+
+            const topUsers = users.slice(0, 3);
+
+
+            if (topUsers.length === 0) {
+                top3List.innerHTML = '<div class="no-users-message">Нет данных о пользователях</div>';
+                return;
+            }
+
+
+            topUsers.forEach((user, index) => {
+                const leaderItem = document.createElement('div');
+                leaderItem.className = `leader-item ${index >= 3 ? 'regular' : ''}`;
+                leaderItem.style.animationDelay = `${index * 0.2}s`;
+
+                leaderItem.innerHTML = `
+                    <div class="leader-rank">${index + 1}</div>
+                    <div class="leader-info">
+                        <div class="leader-name">${user.username}</div>
+                        <div class="leader-stats">${user.score || 0} pts</div>
+                    </div>
+                `;
+
+                leaderItem.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                    console.log(`Clicked on: ${user.username}`);
+                });
+
+                top3List.appendChild(leaderItem);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching top users:', error);
+            top3List.innerHTML = '<div class="no-users-message">Здесь пока пусто(</div>';
+        });
+}
+
 function initializeBasicEffects() {
     console.log('Initializing basic effects...');
 
@@ -77,6 +126,7 @@ function initializePlatform() {
         initLeaderboardWidget();
         initLeaderboardToggle();
         initLeaderboardScroll();
+        generateTop3Leaderboard();
 
         console.log('Platform initialized successfully');
     } catch (error) {
@@ -203,6 +253,9 @@ function initLeaderboardToggle() {
             this.textContent = 'Показать всех участников';
             this.classList.remove('showing-all');
             widget.classList.remove('expanded');
+
+
+            generateTop3Leaderboard();
         }
 
         console.log('Leaderboard toggled, showing full:', showingFullList);
@@ -215,60 +268,40 @@ function generateFullLeaderboard() {
     const fullList = document.getElementById('leaderboardFull');
     if (!fullList) return;
 
-    const teams = [
-        { name: 'YastiCreator', points: 9999 },
-        { name: '2st', points: 1670 },
-        { name: '3rd', points: 1520 },
-        { name: '4th', points: 1380 },
-        { name: '5th', points: 1240 },
-        { name: '6th', points: 1150 },
-        { name: 'Alexandr', points: 1080 },
-        { name: 'Eto', points: 970 },
-        { name: 'testovyj', points: 890 },
-        { name: 'project', points: 820 },
-        { name: 'CTF', points: 760 },
-        { name: 'WEB', points: 710 },
-        { name: 'Crypto Kings', points: 650 },
-        { name: 'Web Warriors', points: 590 },
-        { name: 'PWN Masters', points: 540 },
-        { name: 'Shell SEk', points: 490 },
-        { name: 'Buffer Overflow', points: 430 },
-        { name: 'SQL 22', points: 380 },
-        { name: 'XSS Avengers', points: 320 },
-        { name: 'CTF Newbies', points: 270 },
-        { name: 'Python Pirates', points: 220 },
-        { name: 'Java Jedi', points: 180 },
-        { name: 'C++ HAH', points: 150 },
-        { name: 'Rust Rangers', points: 120 },
-        { name: 'Go Guardians', points: 90 }
-    ];
+    // Запрашиваем всех пользователей с сервера
+    fetch('/api/users/all')
+        .then(response => response.json())
+        .then(users => {
+            fullList.innerHTML = '';
 
-    fullList.innerHTML = '';
+            users.forEach((user, index) => {
+                const leaderItem = document.createElement('div');
+                leaderItem.className = `leader-item ${index >= 3 ? 'regular' : ''}`;
+                leaderItem.style.animationDelay = `${(index % 10) * 0.1}s`;
 
-    teams.forEach((team, index) => {
-        const leaderItem = document.createElement('div');
-        leaderItem.className = `leader-item ${index >= 3 ? 'regular' : ''}`;
-        leaderItem.style.animationDelay = `${(index % 10) * 0.1}s`;
+                leaderItem.innerHTML = `
+                    <div class="leader-rank">${index + 1}</div>
+                    <div class="leader-info">
+                        <div class="leader-name">${user.username}</div>
+                        <div class="leader-stats">${user.score || 0} pts</div>
+                    </div>
+                `;
 
-        leaderItem.innerHTML = `
-            <div class="leader-rank">${index + 1}</div>
-            <div class="leader-info">
-                <div class="leader-name">${team.name}</div>
-                <div class="leader-stats">${team.points} pts</div>
-            </div>
-        `;
+                leaderItem.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                    console.log(`Clicked on: ${user.username}`);
+                });
 
-        leaderItem.addEventListener('click', function() {
-            this.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                this.style.transform = '';
-            }, 150);
-
-            console.log(`Clicked on: ${team.name}`);
+                fullList.appendChild(leaderItem);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching all users:', error);
+            fullList.innerHTML = '<div class="no-users-message">Ошибка загрузки данных</div>';
         });
-
-        fullList.appendChild(leaderItem);
-    });
 }
 
 function createParticles() {
