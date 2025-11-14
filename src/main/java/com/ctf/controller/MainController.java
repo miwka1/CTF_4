@@ -17,24 +17,20 @@ public class MainController {
     @Autowired
     private UserService userService;
 
-    /**
-     * Главная страница
-     */
+
     @GetMapping("/")
     public String home(Model model, HttpSession session) {
         User currentUser = (User) session.getAttribute("user");
         model.addAttribute("currentUser", currentUser);
 
-        // Добавляем топ пользователей для лидерборда
+
         List<User> topUsers = userService.getTopUsers();
         model.addAttribute("topUsers", topUsers);
 
         return "index";
     }
 
-    /**
-     * Страница аутентификации
-     */
+
     @GetMapping("/auth")
     public String authPage(@RequestParam(value = "register", required = false) String register,
                            @RequestParam(value = "error", required = false) String error,
@@ -46,9 +42,7 @@ public class MainController {
         return "auth";
     }
 
-    /**
-     * Обработка входа пользователя
-     */
+
     @PostMapping("/login")
     public String loginUser(
             @RequestParam String username,
@@ -57,7 +51,7 @@ public class MainController {
             Model model) {
 
         try {
-            // Проверка на пустые поля
+
             if (username == null || username.trim().isEmpty()) {
                 model.addAttribute("error", "Имя пользователя обязательно");
                 model.addAttribute("isLogin", true);
@@ -87,9 +81,7 @@ public class MainController {
         }
     }
 
-    /**
-     * Обработка регистрации пользователя
-     */
+
     @PostMapping("/register")
     public String registerUser(
             @RequestParam String username,
@@ -100,7 +92,7 @@ public class MainController {
             Model model) {
 
         try {
-            // Базовая валидация
+
             if (username == null || username.trim().isEmpty()) {
                 model.addAttribute("error", "Имя пользователя обязательно");
                 return showRegisterForm(model);
@@ -116,45 +108,41 @@ public class MainController {
                 return showRegisterForm(model);
             }
 
-            // Проверка подтверждения пароля
+
             if (!password.equals(confirmPassword)) {
                 model.addAttribute("error", "Пароли не совпадают");
                 return showRegisterForm(model);
             }
 
-            // Проверка длины пароля
+
             if (password.length() < 6) {
                 model.addAttribute("error", "Пароль должен содержать минимум 6 символов");
                 return showRegisterForm(model);
             }
 
-            // Регистрация пользователя
+
             User user = userService.registerUser(username.trim(), password, email.trim());
 
-            // Автоматический вход после регистрации
+
             session.setAttribute("user", user);
             session.setAttribute("username", user.getUsername());
 
             return "redirect:/?registration=success";
 
         } catch (RuntimeException e) {
-            // Обработка ошибок регистрации
+
             model.addAttribute("error", e.getMessage());
             return showRegisterForm(model);
         }
     }
 
-    /**
-     * Показать форму регистрации
-     */
+
     private String showRegisterForm(Model model) {
         model.addAttribute("isLogin", false);
         return "auth";
     }
 
-    /**
-     * Проверка доступности username (AJAX)
-     */
+
     @GetMapping("/check-username")
     @ResponseBody
     public String checkUsername(@RequestParam String username) {
@@ -164,9 +152,7 @@ public class MainController {
         return userService.usernameExists(username.trim()) ? "exists" : "available";
     }
 
-    /**
-     * Проверка доступности email (AJAX)
-     */
+
     @GetMapping("/check-email")
     @ResponseBody
     public String checkEmail(@RequestParam String email) {
@@ -176,9 +162,7 @@ public class MainController {
         return userService.emailExists(email.trim().toLowerCase()) ? "exists" : "available";
     }
 
-    /**
-     * Страница всех пользователей
-     */
+
     @GetMapping("/users")
     public String showUsers(Model model, HttpSession session) {
         User currentUser = (User) session.getAttribute("user");
@@ -189,18 +173,14 @@ public class MainController {
         return "users";
     }
 
-    /**
-     * Выход из системы
-     */
+
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
         return "redirect:/";
     }
 
-    /**
-     * Страницы категорий (можно добавить логику для задач)
-     */
+
     @GetMapping("/category/{category}")
     public String showCategory(@PathVariable String category, Model model, HttpSession session) {
         User currentUser = (User) session.getAttribute("user");
